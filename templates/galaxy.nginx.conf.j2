@@ -1,0 +1,88 @@
+# https://docs.galaxyproject.org/en/master/admin/nginx.html
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    server_name _;
+
+    # compress responses whenever possible
+    gzip on;
+    gzip_http_version 1.1;
+    gzip_vary on;
+    gzip_comp_level 1;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_buffers 16 8k;
+
+    # allow up to 3 minutes for Galaxy to respond to slow requests before timing out
+    uwsgi_read_timeout 180;
+
+    # maximum file upload size
+    client_max_body_size 10g;
+
+    # SSL settings from: https://geekflare.com/nginx-webserver-security-hardening-guide/
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA HIGH !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS";
+    ssl_prefer_server_ciphers on;
+
+    ssl_dhparam /run/secrets/galaxy-dhparams;
+    
+    # enable session reuse
+    ssl_session_cache shared:SSL:8m;
+    ssl_session_timeout 5m;
+
+    # cert/key
+    ssl_certificate /run/secrets/galaxy-server-cert;
+    ssl_certificate_key /run/secrets/galaxy-server-key;
+
+    {% if galaxy_ca_cert != None %}
+    # OCSP stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_trusted_certificate /etc/nginx/ssl/ca.crt;
+    {% endif %}
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass 172.17.0.1:3031;
+        uwsgi_param Host $host;
+        uwsgi_param X-Real-IP $remote_addr;
+        uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+        uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
+    }
+
+    # use a variable for convenience
+    set $galaxy_root /galaxy;
+
+    # serve framework static content
+    # This works because we put the static and plugin folders on volumes and mounted these read-only.
+    location /static/style {
+        alias $galaxy_root/static/style/blue;
+        expires 24h;
+    }
+    location /static {
+        alias $galaxy_root/static;
+        expires 24h;
+    }
+    location /robots.txt {
+        alias $galaxy_root/static/robots.txt;
+        expires 24h;
+    }
+    location /favicon.ico {
+        alias $galaxy_root/static/favicon.ico;
+        expires 24h;
+    }
+
+    # serve visualization and interactive environment plugin static content
+    location ~ ^/plugins/(?<plug_type>.+?)/(?<vis_name>.+?)/static/(?<static_file>.*?)$ {
+        alias $galaxy_root/config/plugins/$plug_type/$vis_name/static/$static_file;
+        expires 24;
+    }
+}

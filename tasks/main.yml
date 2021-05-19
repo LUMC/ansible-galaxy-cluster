@@ -1,0 +1,97 @@
+---
+# tasks file for ansible-galaxy-cluster
+
+- name: Install docker and galaxy dependencies
+  apt:
+    name: 
+      - python3-docker    # for docker_service
+      - python3-jsondiff  # for docker_service
+      - python3-yaml      # for docker_service
+      - docker.io         # for docker service
+      - docker-compose    # for docker service
+      - make              # for building client
+      - git               # for cloning galaxy
+      - acl               # Enable privilege separation for galaxy.
+      - openssl           # for generating dhparams
+    state: present
+    update_cache: true
+    cache_valid_time: 86400  # 24 hours.
+
+- name: Initialize swarm node
+  docker_swarm:
+    name: default
+    state: present
+
+- include: docker_postgres.yml
+
+- name: Set defaults for galaxyproject.galaxy role and installing conda
+  set_fact:
+    "{{ item.key }}": "{{ item.value }}"
+  with_items:
+    - key: "galaxy_layout"
+      value: "custom"
+    - key: "galaxy_conda_root_prefix"
+      value: "{{ galaxy_cluster_dir }}/conda"
+    - key: "galaxy_mutable_data_dir"
+      value: "{{ galaxy_cluster_dir }}/data"
+    - key: "galaxy_server_dir"
+      value: "{{ galaxy_cluster_dir }}/server"
+    - key: "galaxy_venv_dir"
+      value: "{{ galaxy_cluster_dir }}/venv"
+    - key: "galaxy_config_dir"
+      value: "/etc/galaxy"
+    - key: "galaxy_separate_privileges"
+      value: true 
+    - key: "galaxy_clone_depth"
+      value: 1
+    - key: "galaxy_restart_handler_name"
+      value: "restart galaxy"
+    - key: "galaxy_manage_paths"
+      value: true 
+    - key: "galaxy_create_user"
+      value: true
+    - key: "galaxy_user"
+      value: "galaxy"
+    - key: "galaxy_privsep_user"
+      value: "root"
+  when: "item.key not in vars" 
+
+- include: install_conda.yml
+
+- name: Add postgres connection to galaxy_config
+  set_fact:
+    galaxy_config_with_db:  "{{ galaxy_db_config | combine(galaxy_config | default({}), recursive=True) }}"
+
+- name: Run galaxy installation
+  include_role:
+    name: galaxyproject.galaxy
+  vars:
+    galaxy_config: "{{ galaxy_config_with_db}}"
+    galaxy_virtualenv_python:  "{{ galaxy_conda_root_prefix }}/bin/python"
+    galaxy_virtualenv_command: "{{ galaxy_conda_root_prefix }}/bin/virtualenv"
+
+- name: Set defaults for further services
+  set_fact:
+    "{{ item.key }}": "{{ item.value }}"
+  with_items:
+    - key: "galaxy_config_style"
+      value: yaml
+    - key: "galaxy_config_file"
+      value: "{{ galaxy_config_dir }}/galaxy.yml"
+  when: "item.key not in vars" 
+
+- include: docker_nginx.yml
+
+- name: Template systemd unit file 
+  template: 
+    src: galaxy.service.j2 
+    dest: /etc/systemd/system/galaxy.service
+  notify: restart galaxy
+
+- name: Activate galaxy service
+  systemd:
+    enabled: true
+    name: galaxy.service
+    state: started
+    masked: false
+    daemon_reload: yes

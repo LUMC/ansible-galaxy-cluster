@@ -1,0 +1,41 @@
+---
+
+galaxy_cluster_dir: /cluster/galaxy
+
+galaxy_miniconda_download_url: https://repo.anaconda.com/miniconda/Miniconda3-py37_4.9.2-Linux-x86_64.sh
+galaxy_miniconda_download_location: /tmp/miniconda.sh
+galaxy_python_version: "3.7"
+##################
+# NGINX Settings #
+##################
+nginx_dhparam_bits: 4096
+nginx_ssl_dir: /etc/nginx/ssl
+nginx_config_dir: /etc/nginx
+galaxy_ca_cert: null 
+# galaxy_server_key: null # The ssl server key. Required!
+# galaxy_server_key: null # The ssl server certificate. Required!
+
+############################
+# Galaxy database settings #
+############################
+galaxy_db_username: galaxy 
+galaxy_db_name: galaxy
+# galaxy_db_password: galaxy  # This must be set by the user.
+# galaxy_db_root_password: root  # This must be set by the user.
+galaxy_db_config:
+  galaxy:
+    database_connection: 
+      "postgresql://{{galaxy_db_username}}:{{galaxy_db_password}}@172.17.0.1:5432/{{ galaxy_db_name }}?client_encoding=utf8"
+
+###################
+# Docker settings #
+###################
+docker_service_nginx_image: "nginx:stable"
+docker_service_postgres_image: "postgres:latest"
+
+##########
+# Backup #
+##########
+galaxy_backup_dir: /var/lib/galaxy/database_backup
+galaxy_backup_calendar: daily  # See https://www.freedesktop.org/software/systemd/man/systemd.time.html#Calendar%20Events
+galaxy_backup_max_copies: 1

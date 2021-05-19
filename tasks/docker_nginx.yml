@@ -1,0 +1,106 @@
+- name: Create nginx ssl directory 
+  file: 
+    path: "{{ nginx_ssl_dir }}"
+    state: directory
+    mode: 0700
+
+- name:
+  template:
+    src: galaxy.nginx.conf.j2 
+    dest: "{{ nginx_config_dir }}/galaxy.conf"
+
+- name: Create dhparam
+  openssl_dhparam:
+    size: "{{ nginx_dhparam_bits }}"
+    path: "{{ nginx_ssl_dir }}/dhparams.pem"
+    mode: 0600
+    state: present 
+
+- name: Read dhparam file
+  slurp:
+    src: "{{ nginx_ssl_dir }}/dhparams.pem"
+  register: nginx_dhparams
+
+- name: Copy ca cert 
+  copy:
+    src: "{{ galaxy_ca_cert }}"
+    dest: "{{ nginx_ssl_dir }}/ca.crt"
+    mode: 0644
+  when: galaxy_ca_cert | default(false)
+
+- name: Set unique names so configs can be updated
+  set_fact:
+    galaxy_nginx_config_name:  "galaxy.nginx.conf-{{ lookup('template', 'galaxy.nginx.conf.j2') | hash('md5')}}"
+    galaxy_server_key_secret_name:
+        "galaxy-server-key-{{ lookup('file', galaxy_server_key) | regex_search('^[^\\-].*$', multiline=True) | hash('md5')}}"
+    galaxy_server_cert_secret_name:
+      "galaxy-server-cert-{{ lookup('file', galaxy_server_cert) | regex_search('^[^\\-].*$', multiline=True) | hash('md5')}}"
+
+- name: create galaxy-nginx config
+  docker_config:
+    name: "{{ galaxy_nginx_config_name }}"
+    data: "{{ lookup('template', 'galaxy.nginx.conf.j2')}}"
+
+- name: create galaxy-server-key secret
+  docker_secret:
+    name: "{{ galaxy_server_key_secret_name }}"
+    data: "{{ lookup('file', galaxy_server_key) }}"
+
+- name: create galaxy-server-cert secret
+  docker_secret:
+    name: "{{ galaxy_server_cert_secret_name }}"
+    data: "{{ lookup('file', galaxy_server_cert) }}"
+
+- name: create galaxy-dhparams secret
+  docker_secret: 
+    name: galaxy-dhparams
+    data: "{{ nginx_dhparams['content'] }}"
+    data_is_b64: true
+
+- name: Setup nginx service
+  docker_stack:
+    name: galaxy_nginx
+    state: present
+    compose:
+      - version: '3.3'
+        services:
+          proxy:
+            ports:
+              - "80:80"
+              - "443:443"
+            image: "{{ docker_service_nginx_image }}"
+            volumes:
+              - source: "{{ nginx_ssl_dir }}" 
+                target: "/etc/nginx/ssl"
+                type: bind 
+                read_only: true
+              - source: "{{ galaxy_server_dir }}/static"
+                target: /galaxy/static
+                type: bind 
+                read_only: true
+              - source: "{{ galaxy_server_dir }}/config"
+                target: /galaxy/config
+                type: bind 
+                read_only: true
+            secrets:
+              - galaxy-server-key
+              - galaxy-server-cert 
+              - galaxy-dhparams
+            configs:
+              - source: "galaxy.nginx.conf"
+                target: /etc/nginx/conf.d/default.conf
+                mode: 0440
+        secrets:
+          galaxy-server-key:
+            external:
+              name: "{{ galaxy_server_key_secret_name }}"
+          galaxy-server-cert:
+            external:
+              name: "{{ galaxy_server_cert_secret_name}}"
+          galaxy-dhparams:
+            external:
+              name: galaxy-dhparams
+        configs:
+          "galaxy.nginx.conf":
+            external:
+              name: "{{ galaxy_nginx_config_name }}"

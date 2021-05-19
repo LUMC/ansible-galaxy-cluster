@@ -1,0 +1,77 @@
+- name: create galaxy-db-username secret
+  docker_secret:
+    name: galaxy-db-username
+    data: "{{ galaxy_db_username }}"
+    state: present
+
+- name: create galaxy-db-password secret
+  docker_secret:
+    name: galaxy-db-password
+    data: "{{ galaxy_db_password }}"
+    state: present
+
+- name: create galaxy-db-root-password secret
+  docker_secret:
+    name: galaxy-db-root-password
+    data: "{{ galaxy_db_root_password }}"
+    state: present
+
+- name: Setup postgres service
+  docker_stack:
+    name: galaxy_postgres
+    state: present
+    compose:
+      - version: '3.3'
+        services:
+          db:
+            image: "{{ docker_service_postgres_image }}"
+            volumes:
+              - postgres-data:/var/lib/postgresql/data
+            environment:
+              - POSTGRES_ROOT_PASSWORD_FILE=/run/secrets/galaxy-db-root-password
+              - POSTGRES_USER_FILE=/run/secrets/galaxy-db-username
+              - POSTGRES_PASSWORD_FILE=/run/secrets/galaxy-db-password
+              - "POSTGRES_DB={{ galaxy_db_name }}"
+            secrets:
+              - galaxy-db-username
+              - galaxy-db-password
+              - galaxy-db-root-password
+            ports:
+              - "127.0.0.1:5432:5432"
+        volumes:
+          postgres-data:
+        secrets:
+          galaxy-db-username:
+            external:
+              name: galaxy-db-username
+          galaxy-db-password:
+            external:
+              name: galaxy-db-password
+          galaxy-db-root-password:
+            external:
+              name: galaxy-db-root-password
+
+
+- name: Create database backup dir
+  file:
+    path: "{{ galaxy_backup_dir }}"
+    state: directory
+    mode: "700"
+
+- name: Create galaxy backup service
+  template: 
+    src: galaxy-backup.service.j2 
+    dest: /etc/systemd/system/galaxy-backup.service
+
+- name: Create galaxy backup timer
+  template: 
+    src: galaxy-backup.timer.j2 
+    dest: /etc/systemd/system/galaxy-backup.timer
+
+- name: Activate galaxy backup service
+  systemd:
+    state: started
+    enabled: true
+    name: galaxy-backup.timer
+    masked: false
+    daemon_reload: yes

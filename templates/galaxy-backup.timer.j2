@@ -1,0 +1,10 @@
+[Unit]
+Description=Run galaxy backup periodically
+
+[Timer]
+OnCalendar={{ galaxy_backup_calendar }}
+Persistent=true
+Unit=galaxy-backup.service
+
+[Install]
+WantedBy=timers.target

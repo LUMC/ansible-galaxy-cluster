@@ -1,0 +1,16 @@
+[Unit]
+Description=Periodic Galaxy database backup
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Get the postgres container and dump the database
+# We use ISO timings because they can be sorted
+ExecStart=bash -c '\
+    docker exec $(docker ps -f status=running -f is-task=true  -f name=galaxy_postgres -q) \
+    pg_dump -d {{ galaxy_db_name }} -U {{ galaxy_db_username}} | gzip \
+    > {{ galaxy_backup_dir }}/{{ galaxy_db_name }}_$(date --iso-8601=seconds).sql.gz' 
+
+# Remove any redundant copies
+ExecStart=bash -c 'rm -f $(find {{ galaxy_backup_dir }} -name {{galaxy_db_name}}_* -type f \
+    | sort | head -n -{{galaxy_backup_max_copies}})'

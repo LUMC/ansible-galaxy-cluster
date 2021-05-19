@@ -1,0 +1,33 @@
+---
+
+# Based on:
+# https://github.com/robinandeer/ansible-miniconda/blob/master/tasks/install.yml
+
+- name: Check if conda is already installed 
+  stat: 
+    path: "{{ galaxy_conda_root_prefix }}/bin/conda"
+  register: conda_installed
+  changed_when: conda_installed.stat.exists == False
+
+- name: Download conda 
+  get_url:
+    url: "{{ galaxy_miniconda_download_url }}"
+    dest: "{{ galaxy_miniconda_download_location}}"
+  when: conda_installed.stat.exists == False
+
+- name: Install miniconda 
+  # Install in batch mode (-b). The prefix should already be created if 
+  # galaxy_manage_paths: yes. So we use -f to force installing on an existing
+  # directory.
+  command: >-
+    bash {{ galaxy_miniconda_download_location }}
+      -p {{ galaxy_conda_root_prefix }}
+      -f -b 
+  when: conda_installed.stat.exists == False
+
+- name: Install galaxy python version, virtualenv and update conda
+  command: >-
+    {{ galaxy_conda_root_prefix }}/bin/conda install -y \
+    python={{ galaxy_python_version }} conda virtualenv
+  register: conda_python_install
+  changed_when: '"All requested packages already installed" not in conda_python_install.stdout'

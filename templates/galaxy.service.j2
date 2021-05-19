@@ -1,0 +1,22 @@
+[Unit]
+Description=Galaxy web server
+Requires=docker.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+ExecStart={{ galaxy_venv_dir }}/bin/uwsgi \
+    --virtualenv {{ galaxy_venv_dir }} \
+    --{{ galaxy_config_style }} {{ galaxy_config_file }} \
+    --socket :3031
+Restart=always
+# Set environment variables for the database.
+# Make sure the galaxy_venv_dir python is on PATH. This is not handled by the
+# uwsgi --virtualenv flag.
+Environment=\
+    GALAXY_CONFIG_CONFIG_DIR={{ galaxy_config_dir }} \
+    PATH={{ galaxy_venv_dir }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+User={{ galaxy_user }}
+WorkingDirectory={{ galaxy_server_dir }}
