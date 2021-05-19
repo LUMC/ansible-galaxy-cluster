@@ -48,16 +48,19 @@ Variable| default | description
 `galaxy_miniconda_download_location` | /tmp/miniconda.sh | Where to store the conda install script.
 `nginx_dhparam_bits | 4096 | Nginx is more secure when a dhparam file is generated. Set the amount of bits for the generation.
 `nginx_ssl_dir` | /etc/nginx/ssl |  where the dhparam files are stored
-`nginx_config_dir | /etc/nginx | Configuration directory for nginx
+`docker_service_nginx_image`| nginx:stable | Image used for nginx
+`docker_service_postgres_image | postgres:latest | Image used for postgres
+`galaxy_backup_dir` | /var/lib/galaxy/database_backup | Where to store the SQL dump of the database.
+`galaxy_backup_calendar` | daily | Set backup timer schedule, see https://www.freedesktop.org/software/systemd/man/systemd.time.html#Calendar%20Events
+`galaxy_backup_max_copies` | 1 | How many SQL dumps should be kept on the server.
 
+## Dependencies
 
-Dependencies
-------------
+The [galaxyproject.galaxy role](https://github.com/galaxyproject/ansible-galaxy) 
+is what is used to install galaxy. Checkout the documentation of this role for
+more information on how to apply the necessary settings to your galaxy.
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
-
-Example Playbook
-----------------
+## Example Playbook
 
 Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
@@ -65,12 +68,13 @@ Including an example of how to use your role (for instance, with variables passe
       roles:
          - { role: username.rolename, x: 42 }
 
-License
--------
+## License
 
-BSD
+MIT
 
-Author Information
-------------------
+## Author Information
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+This role has been created to maintain the LUMC Galaxy. For more information
+please contact the SASC team: <a href='&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#115;&#97;&#115;&#99;&#64;&#108;&#117;&#109;&#99;&#46;&#110;&#108;'>
+&#115;&#97;&#115;&#99;&#64;&#108;&#117;&#109;&#99;&#46;&#110;&#108;</a>.
+</p>
