@@ -1,5 +1,4 @@
-ansible-galaxy-cluster
-======================
+# ansible-galaxy-cluster
 
 This role will set up [Galaxy](https://galaxyproject.org) on a server connected to
 the cluster filesystem. It does the following:
@@ -22,29 +21,35 @@ for information on how to setup galaxy for your cluster.
 
 For an example check [HOWTO.md](HOWTO.md).
 
-Requirements
-------------
+## Requirements
 
 The [galaxyproject.galaxy role](https://github.com/galaxyproject/ansible-galaxy) 
 should be installed and available for ansible.
 
-Role Variables
---------------
+## Role Variables
 
-Important variables 
-...................
+### Important variables 
 
 Variable| default | description
 ---|---|---
 `galaxy_cluster_dir` | /cluster/galaxy | Location on the cluster where galaxy should be installed.
 `galaxy_python_version` | "3.7" | Which python version should be used to install galaxy
 `galaxy_server_key` | *REQUIRED* | The SSL server key.
-`galaxy_server_cert | *REQUIRED* | The SSL server certificate
+`galaxy_server_cert` | *REQUIRED* | The SSL server certificate
 
 
+### Other variables
+
+Variable| default | description
+---|---|---
 `galaxy_db_username`| galaxy | Username for the galaxy database
-`galaxy_db_name` | galaxy | database 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+`galaxy_db_name` | galaxy | The name of the galaxy database
+`galaxy_minicoda_download_url` | https://repo.anaconda.com/miniconda/Miniconda3-py37_4.9.2-Linux-x86_64.sh | The default download url for miniconda.
+`galaxy_miniconda_download_location` | /tmp/miniconda.sh | Where to store the conda install script.
+`nginx_dhparam_bits | 4096 | Nginx is more secure when a dhparam file is generated. Set the amount of bits for the generation.
+`nginx_ssl_dir` | /etc/nginx/ssl |  where the dhparam files are stored
+`nginx_config_dir | /etc/nginx | Configuration directory for nginx
+
 
 Dependencies
 ------------
