@@ -111,3 +111,9 @@ shown below:
 
 ### Set up HTTPS
 
+- Create a server key and request a certificate. You can create a self-signed 
+  certificate with `openssl req -new -newkey rsa:2048 -sha256 -days 3650 -nodes -x509 -keyout server.key -out server.crt`
+- Set `galaxy_server_key` and `galaxy_server_cert` in the configuration.
+
+### Configure the connection to the slurm cluster
+
