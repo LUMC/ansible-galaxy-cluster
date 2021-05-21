@@ -66,7 +66,9 @@ Including an example of how to use your role (for instance, with variables passe
 
     - hosts: servers
       roles:
-         - { role: username.rolename, x: 42 }
+         - role: ansible-galaxy-cluster
+
+For a more elaborate setup check [HOWTO.md](HOWTO.md).
 
 ## License
 
