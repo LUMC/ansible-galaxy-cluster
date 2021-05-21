@@ -84,3 +84,30 @@ mygalaxy host=mygalaxy.example.org
 - This is a good time to initialize a git repository with `git init` and 
   commit the directory. Git allows you to rollback to each commit as well as
   providing an easy way to backup your configuration in a remote location.
+
+
+### Connect server to the cluster filesystem
+
+- If required: add a few pre_tasks to mount the cluster filesystem. Example
+shown below:
+
+```YAML
+    - name: Install nfs client.
+      apt:
+        name: nfs-common 
+        state: present 
+    - name: Mount /cluster/galaxy 
+      mount: 
+        src: hpc-cluster.example.org:/clusterfs/galaxy
+        path: /cluster/galaxy
+        fstype: nfs 
+        opts: rw,hard,intr,rsize=32768,wsize=32768,tcp,vers=4,noatime
+        dump: "0"
+        passno : "0"
+        state: mounted
+```
+
+- Set `galaxy_cluster_dir: /cluster/galaxy/mygalaxy` in `/inventory/host_vars/mygalaxy.yml`
+
+### Set up HTTPS
+
