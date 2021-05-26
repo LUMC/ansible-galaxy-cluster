@@ -303,4 +303,41 @@ verbose: True
   <mulled_singularity auto_install="False" cache_directory="{{ galaxy_mutable_data_dir }}/cache/singularity" />
   <build_mulled_singularity auto_install="False" cache_directory="{{ galaxy_mutable_data_dir }}/cache/singularity" />
 </containers_resolvers>
+```
 
+- In your ansible settings set the following variables:
+
+```YAML
+galaxy_config_files:
+  - src: tool_destinations.yml
+    dest: "{{ galaxy_config_dir }}/tool_destinations.yml"
+galaxy_config_templates:
+  - src: job_conf.xml.j2
+    dest: "{{ galaxy_config_dir }}/job_conf.xml"
+  - src: container_resolvers_conf.xml.j2
+    dest: "{{ galaxy_config_dir }}/container_resolvers_conf.xml"
+```
+
+- in ansible configuration set the following settings:
+
+```YAML
+galaxy_config:
+  galaxy:
+    # ... other settings can go here ...
+    conda_auto_init: false
+    conda_auto_install: false
+    dependency_resolvers: {}
+    job_config_file: "{{ galaxy_config_dir}}/job_conf.xml"
+    tool_destinations_config_file: "{{ galaxy_config_dir}}/tool_destinations.yml"
+    containers_resolvers_config_file: "{{ galaxy_config_dir }/container_resolvers_conf.xml"
+```
+
+### Further configuration
+
+Further configuration of galaxy is detailed on the [ansible-galaxy README](
+https://github.com/galaxyproject/ansible-galaxy/blob/main/README.md).
+
+## Administration
+
+### NGiNX
+Nginx is 
