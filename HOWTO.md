@@ -339,5 +339,36 @@ https://github.com/galaxyproject/ansible-galaxy/blob/main/README.md).
 
 ## Administration
 
-### NGiNX
-Nginx is 
+### Restarting galaxy
+
+    # systemctl restart galaxy
+
+### Checking galaxy logs
+
+    # journalctl -u galaxy
+
+for following the log:
+
+    # journalctl -f -u galaxy
+
+### Database backup.
+
+To run the database backup process:
+
+  # systemctl start galaxy-backup
+
+To view the logs: 
+
+  # journalctl -u galaxy-backup
+
+The backup service creates a SQL dump of the current database on the server filesystem. This works for a VM that is backed up by snapshots. If your server does not have snapshot
+support you should implement your own periodic service for moving the SQL
+dumps to a storage server.
+
+### Checking nginx and postgres logs
+
+- Check the containers that are running with `docker ps`
+- Copy the name of the desired container
+- use `docker logs <name>` or `docker logs -f <name>` to check the logs.
+  
+## Example files
