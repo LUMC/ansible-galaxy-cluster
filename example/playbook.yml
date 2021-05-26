@@ -2,11 +2,6 @@
   hosts: all
   gather_facts: true 
   become: true 
-  vars: 
-    # Set the default remote user to the user that is SSHing. Otherwise
-    # galaxy will try to login as the galaxy user or the galaxy privsep user. If
-    # you did not set up SSH authentication for these users this will fail.
-    __galaxy_remote_user: "{{ ansible_ssh_user }}"
 
   pre_tasks:
     - name: Install go
