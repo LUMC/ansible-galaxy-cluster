@@ -1,0 +1,60 @@
+- name: Galaxy server 
+  hosts: all
+  gather_facts: true 
+  become: true 
+  vars: 
+    # Set the default remote user to the user that is SSHing. Otherwise
+    # galaxy will try to login as the galaxy user or the galaxy privsep user. If
+    # you did not set up SSH authentication for these users this will fail.
+    __galaxy_remote_user: "{{ ansible_ssh_user }}"
+
+  pre_tasks:
+    - name: Install go
+      import_role:
+        name: gantsign.golang
+
+    - name: Install singularity
+      include_role:
+        name: cyverse-ansible.singularity
+      vars:
+        singularity_go_path: "{{ golang_install_dir }}"
+    - name: Install nfs client.
+      apt:
+        name: nfs-common 
+        state: present 
+    - name: Mount /cluster/galaxy 
+      mount: 
+        src: hpc-cluster.example.org:/clusterfs/galaxy
+        path: /cluster/galaxy
+        fstype: nfs 
+        opts: rw,hard,intr,rsize=32768,wsize=32768,tcp,vers=4,noatime
+        dump: "0"
+        passno : "0"
+        state: mounted
+  roles:
+    - role: lumc.galaxy-cluster
+  tasks:
+    - name: Set ssh directory
+      set_fact:
+        galaxy_ssh_directory: "/home/{{ galaxy_user.name }}/.ssh"
+    - name: Create ssh directory for galaxy user
+      file:
+        state: directory
+        mode: 0700
+        path: "{{ galaxy_ssh_directory }}"
+        owner: "{{ galaxy_user.name }}"
+
+    - name: Generate keypair for galaxy user.
+      community.crypto.openssh_keypair:
+        path: "{{ galaxy_ssh_directory }}/id_rsa"
+        owner: "{{ galaxy_user.name }}"
+        mode: 0600
+  
+    - name: Read public key for galaxy user.
+      ansible.builtin.slurp:
+        src: "{{ galaxy_ssh_directory }}/id_rsa.pub"
+      register: public_key
+
+    - name: Show public key for galaxy user.
+      ansible.builtin.debug:
+        msg: "{{ public_key['content'] | b64decode }}"

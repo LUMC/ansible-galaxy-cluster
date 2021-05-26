@@ -66,7 +66,11 @@ mygalaxy host=mygalaxy.example.org
   hosts: all
   gather_facts: true 
   become: true 
-
+  vars: 
+    # Set the default remote user to the user that is SSHing. Otherwise
+    # galaxy will try to login as the galaxy user or the galaxy privsep user. If
+    # you did not set up SSH authentication for these users this will fail.
+    __galaxy_remote_user: "{{ ansible_ssh_user }}"
   pre_tasks:
     - name: Install go
       import_role:
@@ -143,6 +147,14 @@ galaxy_create_user: true
 These steps are necessary in order to have the same users on the server as
 on the cluster system.
 
+In order to keep the galaxy configuration unmodifiable by the user running
+the galaxy server it is considered best practice to set the following settings:
+
+```YAML
+galaxy_separate_privileges: true
+galaxy_privsep_user: root  # Can also be an other user
+```
+
 #### Set up SSH keys:
 
 - Add the following tasks to the playbook in order to create an SSH key for 
@@ -151,18 +163,18 @@ on the cluster system.
 ```yaml
     - name: Set ssh directory
       set_fact:
-        galaxy_ssh_directory: "/home/{{ galaxy_user }}/.ssh"
+        galaxy_ssh_directory: "/home/{{ galaxy_user.name }}/.ssh"
     - name: Create ssh directory for galaxy user
       file:
         state: directory
         mode: 0700
         path: "{{ galaxy_ssh_directory }}"
-        owner: "{{ galaxy_user }}"
+        owner: "{{ galaxy_user.name }}"
 
     - name: Generate keypair for galaxy user.
       community.crypto.openssh_keypair:
         path: "{{ galaxy_ssh_directory }}/id_rsa"
-        owner: "{{ galaxy_user }}"
+        owner: "{{ galaxy_user.name }}"
         mode: 0600
   
     - name: Read public key for galaxy user.
@@ -173,6 +185,7 @@ on the cluster system.
     - name: Show public key for galaxy user.
       ansible.builtin.debug:
         msg: "{{ public_key['content'] | b64decode }}"
+
 ```
 
 - The public key should then be added to the authorized_keys file of the 
@@ -372,3 +385,5 @@ dumps to a storage server.
 - use `docker logs <name>` or `docker logs -f <name>` to check the logs.
   
 ## Example files
+
+The example listed above can be found in the [example](example) folder. 
