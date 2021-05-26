@@ -66,7 +66,7 @@ mygalaxy host=mygalaxy.example.org
   hosts: all
   gather_facts: true 
   become: true 
-  
+
   pre_tasks:
     - name: Install go
       import_role:
@@ -346,6 +346,13 @@ galaxy_config:
 Further configuration of galaxy is detailed on the [ansible-galaxy README](
 https://github.com/galaxyproject/ansible-galaxy/blob/main/README.md).
 
+### Running ansible
+The following command will run the playbook. Make sure you have sudo access
+on the server. It will connect as your username and use your user to execute 
+any tasks, switching to desired users with sudo.
+
+    $ ansible-playbook playbook.yml -l mygalaxy --ask-become-pass -e __galaxy_remote_user=$USER
+  
 ## Administration
 
 ### Restarting galaxy
