@@ -265,3 +265,42 @@ on the cluster system.
 </job_conf>
 
 ```
+
+- create `files/tool_destinations.yml` for example:
+```YAML
+default_destination: slurm
+tools:
+  upload1:
+    default_destination: slurm_short
+  ucsc_table_direct1:
+    default_destination: slurm_short
+  bowtie2:
+    default_destination: slurm_highmem
+  
+  centrifuge:
+    default_destination: slurm_highmem
+  
+  spades:
+    default_destination: slurm_highmem
+
+  rna_star:
+    default_destination: slurm_mid_highmem
+  
+  rna_star_index_builder_data_manager:
+    default_destination: slurm_mid_highmem
+  
+  kraken_database_builder:
+    default_destination: slurm_high_highmem
+  
+verbose: True
+```
+
+- Create `templates/containers_resolvers_conf.xml.j2`
+```xml
+<containers_resolvers>
+  <explicit_singularity />
+  <cached_mulled_singularity cache_directory="{{ galaxy_mutable_data_dir }}/cache/singularity" />
+  <mulled_singularity auto_install="False" cache_directory="{{ galaxy_mutable_data_dir }}/cache/singularity" />
+  <build_mulled_singularity auto_install="False" cache_directory="{{ galaxy_mutable_data_dir }}/cache/singularity" />
+</containers_resolvers>
+
