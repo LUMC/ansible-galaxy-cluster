@@ -23,3 +23,5 @@ jobs:
         run: ansible-galaxy install -r meta/requirements.yml
       - name: Test the playbook
         run: ansible-playbook tests/test.yml -i tests/inventory --syntax-check
+      - name: Run the playbook
+        run: ansible-playbook tests/test.yml -i tests/inventory
