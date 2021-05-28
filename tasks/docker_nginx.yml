@@ -4,11 +4,6 @@
     state: directory
     mode: 0700
 
-- name:
-  template:
-    src: galaxy.nginx.conf.j2 
-    dest: "{{ nginx_config_dir }}/galaxy.conf"
-
 - name: Create dhparam
   openssl_dhparam:
     size: "{{ nginx_dhparam_bits }}"
@@ -32,9 +27,9 @@
   set_fact:
     galaxy_nginx_config_name:  "galaxy.nginx.conf-{{ lookup('template', 'galaxy.nginx.conf.j2') | hash('md5')}}"
     galaxy_server_key_secret_name:
-        "galaxy-server-key-{{ lookup('file', galaxy_server_key) | regex_search('^[^\\-].*$', multiline=True) | hash('md5')}}"
+        "galaxy-server-key-{{ lookup('file', galaxy_server_key) | hash('md5')}}"
     galaxy_server_cert_secret_name:
-      "galaxy-server-cert-{{ lookup('file', galaxy_server_cert) | regex_search('^[^\\-].*$', multiline=True) | hash('md5')}}"
+      "galaxy-server-cert-{{ lookup('file', galaxy_server_cert) | hash('md5')}}"
 
 - name: create galaxy-nginx config
   docker_config:

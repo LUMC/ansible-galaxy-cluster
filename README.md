@@ -1,38 +1,82 @@
-Role Name
-=========
+# ansible-galaxy-cluster
 
-A brief description of the role goes here.
+This role will set up [Galaxy](https://galaxyproject.org) on a server connected to
+the cluster filesystem. It does the following:
 
-Requirements
-------------
+- Makes sure all necessary components of galaxy are available on the cluster filesystem.
+- Installs python on the cluster filesystem (using conda) and utilizes this to
+  create the galaxy virtual environment. This ensures all nodes on the cluster
+  utilize the same python binary for tasks that require the galaxy virtualenv.
+- uses the [galaxyproject.galaxy role](https://github.com/galaxyproject/ansible-galaxy)
+  to install galaxy. Sets all the defaults necessary.
+- Installs docker and sets up postgres and nginx on the server using docker.
+- Sets up galaxy as a systemd service
+- Sets up a systemd timer service that regularly makes a SQL dump of the database.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
 
-Role Variables
---------------
+Not included:
+- configuring job_conf.xml, checkout the [galaxyproject.galaxy role](https://github.com/galaxyproject/ansible-galaxy) for documentation on how to add configuration files. 
+Checkout the [advanced job_conf example](https://github.com/galaxyproject/galaxy/blob/dev/lib/galaxy/config/sample/job_conf.xml.sample_advanced)
+for information on how to setup galaxy for your cluster.
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+For an example check [HOWTO.md](HOWTO.md).
 
-Dependencies
-------------
+## Requirements
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+The [galaxyproject.galaxy role](https://github.com/galaxyproject/ansible-galaxy) 
+should be installed and available for ansible.
 
-Example Playbook
-----------------
+## Role Variables
+
+### Important variables 
+
+Variable| default | description
+---|---|---
+`galaxy_cluster_dir` | /cluster/galaxy | Location on the cluster where galaxy should be installed.
+`galaxy_python_version` | "3.7" | Which python version should be used to install galaxy
+`galaxy_server_key` | *REQUIRED* | The SSL server key.
+`galaxy_server_cert` | *REQUIRED* | The SSL server certificate
+
+
+### Other variables
+
+Variable| default | description
+---|---|---
+`galaxy_db_username`| galaxy | Username for the galaxy database
+`galaxy_db_name` | galaxy | The name of the galaxy database
+`galaxy_minicoda_download_url` | https://repo.anaconda.com/miniconda/Miniconda3-py37_4.9.2-Linux-x86_64.sh | The default download url for miniconda.
+`galaxy_miniconda_download_location` | /tmp/miniconda.sh | Where to store the conda install script.
+`nginx_dhparam_bits | 4096 | Nginx is more secure when a dhparam file is generated. Set the amount of bits for the generation.
+`nginx_ssl_dir` | /etc/nginx/ssl |  where the dhparam files are stored
+`docker_service_nginx_image`| nginx:stable | Image used for nginx
+`docker_service_postgres_image | postgres:latest | Image used for postgres
+`galaxy_backup_dir` | /var/lib/galaxy/database_backup | Where to store the SQL dump of the database.
+`galaxy_backup_calendar` | daily | Set backup timer schedule, see https://www.freedesktop.org/software/systemd/man/systemd.time.html#Calendar%20Events
+`galaxy_backup_max_copies` | 1 | How many SQL dumps should be kept on the server.
+
+## Dependencies
+
+The [galaxyproject.galaxy role](https://github.com/galaxyproject/ansible-galaxy) 
+is what is used to install galaxy. Checkout the documentation of this role for
+more information on how to apply the necessary settings to your galaxy.
+
+## Example Playbook
 
 Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
     - hosts: servers
       roles:
-         - { role: username.rolename, x: 42 }
+         - role: ansible-galaxy-cluster
 
-License
--------
+For a more elaborate setup check [HOWTO.md](HOWTO.md).
 
-BSD
+## License
 
-Author Information
-------------------
+MIT
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+## Author Information
+
+This role has been created to maintain the LUMC Galaxy. For more information
+please contact the SASC team: <a href='&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#115;&#97;&#115;&#99;&#64;&#108;&#117;&#109;&#99;&#46;&#110;&#108;'>
+&#115;&#97;&#115;&#99;&#64;&#108;&#117;&#109;&#99;&#46;&#110;&#108;</a>.
+</p>

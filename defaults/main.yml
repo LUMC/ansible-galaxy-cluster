@@ -10,10 +10,9 @@ galaxy_python_version: "3.7"
 ##################
 nginx_dhparam_bits: 4096
 nginx_ssl_dir: /etc/nginx/ssl
-nginx_config_dir: /etc/nginx
 galaxy_ca_cert: null 
 # galaxy_server_key: null # The ssl server key. Required!
-# galaxy_server_key: null # The ssl server certificate. Required!
+# galaxy_server_cert: null # The ssl server certificate. Required!
 
 ############################
 # Galaxy database settings #

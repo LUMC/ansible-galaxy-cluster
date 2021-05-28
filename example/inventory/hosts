@@ -1,0 +1,9 @@
+[cluster-galaxy]
+mygalaxy host=mygalaxy.example.org
+testgalaxy host=testgalaxy.example.org 
+
+[test]
+testgalaxy host=testgalaxy.org
+
+[production]
+mygalaxy host=mygalaxy.example.org

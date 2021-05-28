@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<job_conf>
+    <plugins workers="4">
+        <plugin id="local" type="runner" load="galaxy.jobs.runners.local:LocalJobRunner"/>
+        <plugin id="cli" type="runner" load="galaxy.jobs.runners.cli:ShellJobRunner" />
+    </plugins>
+    <handlers>
+        <handler id="handler0"/>
+        <handler id="handler1"/>
+    </handlers>
+    <destinations default="dtd_destination">
+        <destination id="local" runner="local"/>
+        <destination id="dtd_destination" runner="dynamic">
+            <param id="type">dtd</param>
+        </destination>
+        <expand macro="slurm_destination" id="slurm_short" ncpus="1" mem="2G" time="59" partition="short" />
+        <expand macro="slurm_destination" id="slurm" ncpus="1" mem="4G" time="24:00:00" partition="all"/>
+        <expand macro="slurm_destination" id="slurm_highmem" ncpus="1" mem="16G" time="24:00:00" partition="all,highmem" />
+        <expand macro="slurm_destination" id="slurm_mid_highmem" ncpus="4" mem="64G" time="24:00:00" partition="all,highmem" />
+        <expand macro="slurm_destination" id="slurm_high_highmem" ncpus="8" mem="112G" time="24:00:00" partition="all,highmem"/>
+        <expand macro="slurm_destination" id="slurm_mid" ncpus="4" mem="16G" time="24:00:00" partition="all"/>    
+    </destinations>    
+    <macros>
+        <xml name="slurm_destination" tokens="id,time,ncpus,mem,partition">
+            <destination id="@ID@" tags="slurm_cluster" runner="cli">
+                <env id="GALAXY_LIB">{{ galaxy_server_dir }}/lib</env>
+                <env id="GALAXY_VIRTUAL_ENV">{{ galaxy_venv_dir }}</env>
+                <param id="singularity_enabled">true</param>
+                <param id="singularity_cmd">/cluster/software/singularity/3.7.3/bin/singularity</param>
+                <!-- Isolate all things except environment. Galaxy passes settings 
+                including PYTHONPATH in the environment. This is needed for galaxy
+                settings to propagate to the tool script.
+                Also set a current working directory to prevent the script from starting in $HOME.
+                -->
+                <param id="singularity_run_extra_arguments">--contain --ipc --pid --pwd $_GALAXY_JOB_DIR/working</param>
+                <param id="shell_plugin">SecureShell</param>
+                <param id="job_plugin">Slurm</param>
+                <param id="shell_hostname">My_login_node</param>
+                <param id="job_time">@TIME@</param>
+                <param id="job_ncpus">@NCPUS@</param>
+                <param id="job_partition">@PARTITION@</param>
+                <param id="job_--mem">@MEM@</param>
+
+                <param id="singularity_enabled">true</param>
+                  <!-- Ensuring a consistent collation environment is good for reproducibility. -->
+                <env id="LC_ALL">C</env>
+                <!-- The cache directory holds the docker containers that get converted. -->
+                <env id="SINGULARITY_CACHEDIR">/tmp/singularity</env>
+                <!-- Singularity uses a temporary directory to build the squashfs filesystem. -->
+                <env id="SINGULARITY_TMPDIR">/tmp</env>
+            </destination>
+        </xml>
+    </macros>
+
+    <limits>
+        <limit type="registered_user_concurrent_jobs">50</limit>
+        <limit type="anonymous_user_concurrent_jobs">0</limit>
+        <limit type="destination_user_concurrent_jobs" id="local">2</limit>
+        <limit type="destination_total_concurrent_jobs" id="local">2</limit>
+        <limit type="destination_total_concurrent_jobs" tag="slurm_cluster">100</limit>
+        <limit type="walltime">24:00:00</limit>
+    </limits>
+
+</job_conf>
