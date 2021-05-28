@@ -1,7 +1,15 @@
 # ansible-galaxy-cluster
 
 This role will set up [Galaxy](https://galaxyproject.org) on a server connected to
-the cluster filesystem. It does the following:
+the cluster filesystem. 
+
+If you are considering reuse of this role, please checkout the [Galaxy Training Nework](
+https://training.galaxyproject.org/), specifically the documentation
+on [Galaxy server administration](https://training.galaxyproject.org/training-material/topics/admin/). This role has a very specific use case and might not solve your 
+problem, while galaxy admin training will prepare you for a wide range of
+possibilities.
+
+This role does the following:
 
 - Makes sure all necessary components of galaxy are available on the cluster filesystem.
 - Installs python on the cluster filesystem (using conda) and utilizes this to
