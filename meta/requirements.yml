@@ -1,4 +1,4 @@
 ---
 - name: galaxyproject.galaxy
   src: https://github.com/ansible/ansible-galaxy
-  version: main
+  version: 0.9.13
