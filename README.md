@@ -70,8 +70,6 @@ more information on how to apply the necessary settings to your galaxy.
 
 ## Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
     - hosts: servers
       roles:
          - role: ansible-galaxy-cluster
