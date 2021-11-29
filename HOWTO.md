@@ -117,6 +117,11 @@ shown below:
 
 ### Configure the connection to the SLURM cluster
 
+This leans heavily on the [Galaxy cluster documentation](https://docs.galaxyproject.org/en/latest/admin/cluster.html) 
+and the 
+[Galaxy singularity tutorial](https://training.galaxyproject.org/training-material/topics/admin/tutorials/singularity/tutorial.html). 
+Please read these first to get a better understanding of how to apply the 
+configuration to your setup.
 
 In this example we will be using SSH to connect to a login node. 
 This way our server does not have to have the munge authentication needed
