@@ -25,7 +25,7 @@ galaxy_db_name: galaxy
 galaxy_db_config:
   galaxy:
     database_connection: 
-      "postgresql://{{galaxy_db_username}}:{{galaxy_db_password}}@172.17.0.1:5432/{{ galaxy_db_name }}?client_encoding=utf8"
+      "postgresql://{{galaxy_db_username}}:{{galaxy_db_password}}@127.0.0.1:5432/{{ galaxy_db_name }}?client_encoding=utf8"
 
 ###################
 # Docker settings #
