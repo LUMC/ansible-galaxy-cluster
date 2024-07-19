@@ -2,9 +2,9 @@
 
 galaxy_cluster_dir: /cluster/galaxy
 
-galaxy_miniconda_download_url: https://repo.anaconda.com/miniconda/Miniconda3-py37_4.9.2-Linux-x86_64.sh
+galaxy_miniconda_download_url: https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
 galaxy_miniconda_download_location: /tmp/miniconda.sh
-galaxy_python_version: "3.7"
+galaxy_python_version: "3.10"
 ##################
 # NGINX Settings #
 ##################
