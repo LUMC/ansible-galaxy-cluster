@@ -9,6 +9,7 @@ on:
 
 jobs:
   run-playbook:
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.3.4
       - name: setup Python    
@@ -18,5 +19,9 @@ jobs:
       - name: Create a roles_path
         run: >-
           printf '[defaults]\nroles_path=../' >ansible.cfg
+      - name: Install role requirements
+        run: ansible-galaxy install -r meta/requirements.yml
       - name: Test the playbook
         run: ansible-playbook tests/test.yml -i tests/inventory --syntax-check
+      - name: Run the playbook
+        run: ansible-playbook tests/test.yml -i tests/inventory -e ansible_python_interpreter=python3
