@@ -1,3 +1,5 @@
+This repository is archived. Please use the galaxyproject provided ansible roles.
+
 # ansible-galaxy-cluster
 
 This role will set up [Galaxy](https://galaxyproject.org) on a server connected to
